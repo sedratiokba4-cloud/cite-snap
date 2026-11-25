@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>سيت — نظام إدارة المبيعات والأرباح</title>
+
+    <!-- خط Cairo العربي العصري -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- أيقونات Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- مكتبة الرسوم البيانية Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            900: '#064e3b',
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* تخصيص شريط التمرير */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+
+        .dark ::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+
+        /* إخفاء أسهم حقول الأرقام */
+        input[type=number]::-webkit-inner-spin-button,
+        input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .glass-nav {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        /* هوية صورة سيت المستوحاة من سنابشات */
+        .cite-snap-badge {
+            background: #FFFC00;
+            box-shadow: 0 4px 14px rgba(255, 252, 0, 0.35), 0 0 0 2px rgba(255, 255, 255, 0.9);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200 pb-24 md:pb-10">
+
+    <!-- الشريط العلوي (Header) -->
+    <header class="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 glass-nav border-b border-slate-200 dark:border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2">
+            <!-- شعار وعنوان "سيت" بصورة سنابشات الصفراء -->
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-2xl cite-snap-badge flex items-center justify-center shrink-0 transition-transform hover:scale-105" title="سيت — هوية سنابشات">
+                    <!-- أيقونة شبح سنابشات بلمسة سيت -->
+                    <svg viewBox="0 0 64 64" class="w-8 h-8" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="شعار سيت">
+                        <path d="M32 9C21.5 9 15 16.5 15 26.5C15 30.8 15.8 34.4 14.3 37.2C12.7 40.2 9.5 41.3 8.5 41.6C7.7 41.8 7.3 42.6 7.5 43.4C7.8 44.3 9.7 45.7 13.8 46.7C14.3 48.8 15.1 50.6 16.5 51.6C18.2 52.8 20.6 52.3 22.8 51.9C24.5 51.6 26.1 51.4 27.5 52.4C29.1 53.5 30.3 55 32 55C33.7 55 34.9 53.5 36.5 52.4C37.9 51.4 39.5 51.6 41.2 51.9C43.4 52.3 45.8 52.8 47.5 51.6C48.9 50.6 49.7 48.8 50.2 46.7C54.3 45.7 56.2 44.3 56.5 43.4C56.7 42.6 56.3 41.8 55.5 41.6C54.5 41.3 51.3 40.2 49.7 37.2C48.2 34.4 49 30.8 49 26.5C49 16.5 42.5 9 32 9Z" fill="#FFFC00" stroke="#111827" stroke-width="3.2" stroke-linejoin="round"/>
+                        <circle cx="27" cy="27.5" r="2.4" fill="#111827"/>
+                        <circle cx="37" cy="27.5" r="2.4" fill="#111827"/>
+                        <path d="M27.5 34.5C29.2 36.4 34.8 36.4 36.5 34.5" stroke="#111827" stroke-width="2.6" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span class="px-2.5 py-0.5 rounded-lg bg-[#FFFC00] text-slate-950 border border-slate-900/15 text-xs font-extrabold tracking-wide shadow-2xs">سيت</span>
+                        <h1 id="brandTitle" class="font-bold text-base sm:text-lg leading-tight text-slate-900 dark:text-white">حسابي الخاص</h1>
+                        <button type="button" onclick="editOwnerName()" title="تعديل اسمك أو اسم مشروعك" class="p-1 rounded-lg text-slate-400 hover:text-emerald-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                            <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1.5 mt-0.5">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                        <span id="welcomeOwnerLabel">سيت • حسابي الخاص • الدينار الجزائري (دج)</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- سعر السكوار السريع وأزرار التحكم -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="hidden sm:flex items-center gap-2 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">سعر السكوار:</span>
+                    <input type="number" id="headerSquareRate" onchange="updateSquareRate(this.value)" class="w-16 bg-transparent font-bold text-sm text-emerald-600 dark:text-emerald-400 focus:outline-none text-center" value="245">
+                    <span class="text-xs font-bold text-slate-600 dark:text-slate-300">دج/$</span>
+                </div>
+
+                <button type="button" onclick="toggleDarkMode()" title="تبديل المظهر" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                    <i data-lucide="moon" class="w-5 h-5 dark:hidden"></i>
+                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block text-amber-400"></i>
+                </button>
+
+                <button type="button" onclick="openBackupModal()" title="النسخ الاحتياطي والبيانات" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
+                    <i data-lucide="database" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- شريط التنقل لأجهزة الكمبيوتر والأجهزة اللوحية -->
+        <nav class="hidden md:block border-t border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-900">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-2 py-2">
+                <button type="button" onclick="switchTab('dashboard')" data-tab="dashboard" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+                    لوحة التحكم
+                </button>
+                <button type="button" onclick="switchTab('sales')" data-tab="sales" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition">
+                    <i data-lucide="shopping-bag" class="w-4 h-4"></i>
+                    المبيعات والكريدي
+                    <span id="navDebtBadge" class="hidden px-2 py-0.5 text-xs rounded-full bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300">0</span>
+                </button>
+                <button type="button" onclick="switchTab('calculator')" data-tab="calculator" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition">
+                    <i data-lucide="calculator" class="w-4 h-4"></i>
+                    حاسبة السكوار / USDT
+                </button>
+                <button type="button" onclick="switchTab('subscriptions')" data-tab="subscriptions" class="nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition">
+                    <i data-lucide="calendar-clock" class="w-4 h-4"></i>
+                    اشتراكات الزبائن
+                    <span id="navSubBadge" class="hidden px-2 py-0.5 text-xs rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">0</span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+
+        <!-- بطاقة الترحيب المخصصة باسم المستخدم أو مشروعه داخل "سيت" بصورة سنابشات -->
+        <div class="mb-6 bg-gradient-to-l from-[#FFFC00]/25 via-amber-300/10 to-transparent dark:from-[#FFFC00]/15 dark:via-slate-900 dark:to-slate-900 p-4 sm:p-5 rounded-2xl border border-amber-300/80 dark:border-amber-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-3.5">
+                <div class="w-12 h-12 rounded-2xl cite-snap-badge flex items-center justify-center shrink-0">
+                    <svg viewBox="0 0 64 64" class="w-8 h-8" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="صورة سيت">
+                        <path d="M32 9C21.5 9 15 16.5 15 26.5C15 30.8 15.8 34.4 14.3 37.2C12.7 40.2 9.5 41.3 8.5 41.6C7.7 41.8 7.3 42.6 7.5 43.4C7.8 44.3 9.7 45.7 13.8 46.7C14.3 48.8 15.1 50.6 16.5 51.6C18.2 52.8 20.6 52.3 22.8 51.9C24.5 51.6 26.1 51.4 27.5 52.4C29.1 53.5 30.3 55 32 55C33.7 55 34.9 53.5 36.5 52.4C37.9 51.4 39.5 51.6 41.2 51.9C43.4 52.3 45.8 52.8 47.5 51.6C48.9 50.6 49.7 48.8 50.2 46.7C54.3 45.7 56.2 44.3 56.5 43.4C56.7 42.6 56.3 41.8 55.5 41.6C54.5 41.3 51.3 40.2 49.7 37.2C48.2 34.4 49 30.8 49 26.5C49 16.5 42.5 9 32 9Z" fill="#FFFC00" stroke="#111827" stroke-width="3.2" stroke-linejoin="round"/>
+                        <circle cx="27" cy="27.5" r="2.4" fill="#111827"/>
+                        <circle cx="37" cy="27.5" r="2.4" fill="#111827"/>
+                        <path d="M27.5 34.5C29.2 36.4 34.8 36.4 36.5 34.5" stroke="#111827" stroke-width="2.6" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-xs font-extrabold text-amber-700 dark:text-amber-300">مساحة عمل سيت • طابع سنابشات</p>
+                    <h2 id="greetingBannerTitle" class="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">أهلاً بك، حسابي الخاص</h2>
+                </div>
+            </div>
+            <button type="button" onclick="editOwnerName()" class="self-start sm:self-auto inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-amber-400 transition shadow-xs">
+                <i data-lucide="edit-2" class="w-3.5 h-3.5 text-amber-500"></i>
+                <span>تخصيص الاسم</span>
+            </button>
+        </div>
+
+        <!-- ==================== 1. قسم لوحة التحكم ==================== -->
+        <section id="tab-dashboard" class="tab-content space-y-6">
+            <!-- شريط سريع للهاتف + زر إضافة بيع -->
+            <div class="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                <div class="flex items-center gap-2 sm:hidden">
+                    <span class="text-xs font-semibold text-slate-500">سعر السكوار:</span>
+                    <input type="number" id="mobileSquareRate" onchange="updateSquareRate(this.value)" class="w-16 bg-slate-100 dark:bg-slate-800 rounded-lg py-1 font-bold text-sm text-emerald-600 dark:text-emerald-400 text-center focus:outline-none" value="245">
+                    <span class="text-xs font-bold">دج</span>
+                </div>
+                <div class="hidden sm:block">
+                    <h2 class="text-lg font-bold text-slate-800 dark:text-white">نظرة عامة على النشاط التجاري في سيت</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">ملخص فوري للمبيعات، الأرباح الصافية، والديون المستحقة</p>
+                </div>
+                <div class="flex items-center gap-2 mr-auto">
+                    <button type="button" onclick="openSaleModal()" class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/20 transition active:scale-95">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span>عملية بيع جديدة</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- بطاقات الإحصائيات الرئيسية -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- إجمالي المبيعات -->
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">إجمالي المبيعات</span>
+                        <div class="w-10 h-10 rounded-xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center">
+                            <i data-lucide="wallet" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-extrabold text-slate-900 dark:text-white" id="statTotalSales">0 دج</div>
+                    <div class="mt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                        <span id="statSalesCount" class="font-bold text-blue-600 dark:text-blue-400">0</span> عملية بيع مسجلة
+                    </div>
+                </div>
+
+                <!-- صافي الربح -->
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">صافي الربح</span>
+                        <div class="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                            <i data-lucide="banknote" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400" id="statNetProfit">0 دج</div>
+                    <div class="mt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                        هامش الربح: <span id="statProfitMargin" class="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/40 px-1.5 py-0.5 rounded">0%</span>
+                    </div>
+                </div>
+
+                <!-- إجمالي التكاليف -->
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">إجمالي التكاليف (رأس المال)</span>
+                        <div class="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+                            <i data-lucide="package" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-extrabold text-slate-800 dark:text-slate-200" id="statTotalCost">0 دج</div>
+                    <div class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                        تكلفة السلع والخدمات المباعة
+                    </div>
+                </div>
+
+                <!-- ديون الزبائن (الكريدي) -->
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-rose-200/80 dark:border-rose-900/50 shadow-sm">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-sm font-semibold text-rose-600 dark:text-rose-400">ديون الزبائن (الكريدي)</span>
+                        <div class="w-10 h-10 rounded-xl bg-rose-50 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 flex items-center justify-center">
+                            <i data-lucide="alert-circle" class="w-5 h-5"></i>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-extrabold text-rose-600 dark:text-rose-400" id="statTotalDebt">0 دج</div>
+                    <div class="mt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                        <span>لدى <strong id="statDebtorsCount" class="text-rose-600 dark:text-rose-400">0</strong> زبائن</span>
+                        <button type="button" onclick="switchTab('sales', 'debt')" class="text-rose-600 dark:text-rose-400 font-bold hover:underline">عرض الكريدي ←</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- الرسم البياني وتنبيهات المتابعة -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="font-bold text-slate-800 dark:text-white">تحليل المبيعات والأرباح</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400">مقارنة المبيعات وصافي الربح لآخر العمليات</p>
+                        </div>
+                    </div>
+                    <div class="relative h-64 w-full">
+                        <canvas id="profitChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-800 dark:text-white mb-1">تنبيهات المتابعة السريعة</h3>
+                        <p class="text-xs text-slate-500 dark:text-slate-400 mb-4">اشتراكات تنتهي قريباً أو ديون معلقة</p>
+                        <div id="dashboardAlertsList" class="space-y-3 max-h-60 overflow-y-auto pr-1"></div>
+                    </div>
+                    <button type="button" onclick="switchTab('subscriptions')" class="mt-4 w-full py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 transition">
+                        إدارة جميع الاشتراكات
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 2. قسم المبيعات والكريدي ==================== -->
+        <section id="tab-sales" class="tab-content hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-white">سجل المبيعات وديون الزبائن (الكريدي)</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">سجّل مبيعاتك اليومية، تتبع المدفوعات الجزئية، وراقب الأرباح بدقة</p>
+                </div>
+                <button type="button" onclick="openSaleModal()" class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/20 transition">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    إضافة عملية بيع
+                </button>
+            </div>
+
+            <!-- البحث والتصفية -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div class="sm:col-span-2 relative">
+                    <i data-lucide="search" class="w-4 h-4 absolute right-3.5 top-3.5 text-slate-400"></i>
+                    <input type="text" id="salesSearchInput" oninput="renderSalesTable()" placeholder="ابحث باسم الزبون، المنتج، أو رقم الهاتف..." class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl pr-10 pl-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <select id="salesFilterSelect" onchange="renderSalesTable()" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-emerald-500">
+                        <option value="all">جميع العمليات</option>
+                        <option value="paid">خالص (مدفوع بالكامل)</option>
+                        <option value="debt">كريدي (غير مدفوع / جزئي)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- جدول المبيعات -->
+            <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 dark:text-slate-400">
+                                <th class="py-3.5 px-4">الزبون والمنتج</th>
+                                <th class="py-3.5 px-4">التاريخ</th>
+                                <th class="py-3.5 px-4">سعر البيع</th>
+                                <th class="py-3.5 px-4">التكلفة</th>
+                                <th class="py-3.5 px-4">الربح الصافي</th>
+                                <th class="py-3.5 px-4">الحالة / الباقي</th>
+                                <th class="py-3.5 px-4 text-center">إجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="salesTableBody" class="divide-y divide-slate-100 dark:divide-slate-800 text-sm"></tbody>
+                    </table>
+                </div>
+                <div id="emptySalesState" class="hidden py-12 text-center">
+                    <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                        <i data-lucide="shopping-bag" class="w-7 h-7"></i>
+                    </div>
+                    <h3 class="font-bold text-slate-700 dark:text-slate-300">لا توجد عمليات بيع مطابقة</h3>
+                    <p class="text-xs text-slate-500 mt-1">ابدأ بإضافة أول عملية بيع لتتبع أرباحك بالدينار الجزائري</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 3. قسم حاسبة السكوار / USDT ==================== -->
+        <section id="tab-calculator" class="tab-content hidden space-y-6">
+            <div class="max-w-3xl mx-auto">
+                <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                    <div class="p-6 bg-gradient-to-l from-emerald-600 to-teal-700 text-white">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-2xl bg-white/15 flex items-center justify-center">
+                                <i data-lucide="calculator" class="w-6 h-6"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-extrabold">حاسبة السكوار / USDT الذكية — سيت</h2>
+                                <p class="text-xs text-emerald-100 mt-0.5">احسب تكلفة الشراء بالدينار الجزائري وحدد سعر البيع وهامش الربح بدقة</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-6 space-y-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1.5">سعر صرف السكوار (1$ / 1 USDT بالدينار)</label>
+                                <div class="relative">
+                                    <input type="number" id="calcExchangeRate" oninput="calculateSquare()" value="245" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-bold text-lg text-emerald-600 dark:text-emerald-400 focus:outline-none focus:border-emerald-500">
+                                    <span class="absolute left-3.5 top-3.5 text-xs font-bold text-slate-400">دج</span>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1.5">التكلفة بالدولار / USDT</label>
+                                <div class="relative">
+                                    <input type="number" id="calcUsdAmount" oninput="calculateSquare()" value="10" step="0.01" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-bold text-lg focus:outline-none focus:border-emerald-500">
+                                    <span class="absolute left-3.5 top-3.5 text-xs font-bold text-slate-400">USD / USDT</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-100 dark:border-slate-800">
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1.5">نسبة الربح المستهدفة (%)</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" id="calcProfitPercent" oninput="calculateSquare('percent')" value="25" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-bold focus:outline-none focus:border-emerald-500">
+                                    <button type="button" onclick="setQuickMargin(15)" class="px-3 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/40">15%</button>
+                                    <button type="button" onclick="setQuickMargin(30)" class="px-3 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/40">30%</button>
+                                    <button type="button" onclick="setQuickMargin(50)" class="px-3 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-xs font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/40">50%</button>
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1.5">أو أدخل سعر البيع النهائي مباشرة (دج)</label>
+                                <div class="relative">
+                                    <input type="number" id="calcSellingPrice" oninput="calculateSquare('price')" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 font-bold text-blue-600 dark:text-blue-400 focus:outline-none focus:border-blue-500">
+                                    <span class="absolute left-3.5 top-3.5 text-xs font-bold text-slate-400">دج</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-50 dark:bg-slate-800/70 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-700 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+                            <div class="p-3 bg-white dark:bg-slate-900 rounded-xl shadow-sm">
+                                <span class="text-xs text-slate-500 block mb-1">التكلفة الحقيقية بالدينار</span>
+                                <span id="resCostDzd" class="text-lg font-extrabold text-slate-800 dark:text-white">2,450 دج</span>
+                            </div>
+                            <div class="p-3 bg-white dark:bg-slate-900 rounded-xl shadow-sm">
+                                <span class="text-xs text-slate-500 block mb-1">سعر البيع المقترح</span>
+                                <span id="resSellDzd" class="text-lg font-extrabold text-blue-600 dark:text-blue-400">3,063 دج</span>
+                            </div>
+                            <div class="p-3 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl border border-emerald-200 dark:border-emerald-800">
+                                <span class="text-xs text-emerald-700 dark:text-emerald-300 block mb-1">صافي ربحك</span>
+                                <span id="resProfitDzd" class="text-lg font-extrabold text-emerald-600 dark:text-emerald-400">+613 دج</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <button type="button" onclick="convertCalcToSale()" class="w-full py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition active:scale-98">
+                                <i data-lucide="arrow-left-circle" class="w-5 h-5"></i>
+                                تسجيل هذه العملية كبيع جديد مباشرة
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== 4. قسم اشتراكات الزبائن ==================== -->
+        <section id="tab-subscriptions" class="tab-content hidden space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900 dark:text-white">إدارة اشتراكات الزبائن والخدمات الرقمية</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">تتبع مواعيد انتهاء الاشتراكات وجدّدها بنقرة واحدة</p>
+                </div>
+                <button type="button" onclick="openSubModal()" class="flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-emerald-600/20 transition">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    إضافة اشتراك جديد
+                </button>
+            </div>
+
+            <div id="subscriptionsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+
+            <div id="emptySubsState" class="hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 py-12 text-center">
+                <div class="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto mb-3">
+                    <i data-lucide="calendar-clock" class="w-7 h-7"></i>
+                </div>
+                <h3 class="font-bold text-slate-700 dark:text-slate-300">لا توجد اشتراكات مسجلة حالياً</h3>
+                <p class="text-xs text-slate-500 mt-1">أضف اشتراكات زبائنك لتلقي تنبيهات بصرية قبل انتهاء الصلاحية</p>
+            </div>
+        </section>
+    </main>
+
+    <!-- شريط التنقل السفلي للهواتف -->
+    <nav class="md:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 dark:bg-slate-900/95 glass-nav border-t border-slate-200 dark:border-slate-800 px-2 py-1.5 flex items-center justify-around">
+        <button type="button" onclick="switchTab('dashboard')" data-tab="dashboard" class="mobile-nav-btn flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl text-xs font-bold transition">
+            <i data-lucide="layout-dashboard" class="w-5 h-5"></i>
+            <span>الرئيسية</span>
+        </button>
+        <button type="button" onclick="switchTab('sales')" data-tab="sales" class="mobile-nav-btn relative flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl text-xs font-bold transition">
+            <i data-lucide="shopping-bag" class="w-5 h-5"></i>
+            <span>المبيعات</span>
+            <span id="mobileDebtDot" class="hidden absolute top-1 right-3 w-2 h-2 rounded-full bg-rose-500"></span>
+        </button>
+        <button type="button" onclick="switchTab('calculator')" data-tab="calculator" class="mobile-nav-btn flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl text-xs font-bold transition">
+            <i data-lucide="calculator" class="w-5 h-5"></i>
+            <span>السكوار</span>
+        </button>
+        <button type="button" onclick="switchTab('subscriptions')" data-tab="subscriptions" class="mobile-nav-btn relative flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl text-xs font-bold transition">
+            <i data-lucide="calendar-clock" class="w-5 h-5"></i>
+            <span>الاشتراكات</span>
+            <span id="mobileSubDot" class="hidden absolute top-1 right-3 w-2 h-2 rounded-full bg-amber-500"></span>
+        </button>
+    </nav>
+
+    <!-- ==================== النوافذ المنبثقة (Modals) ==================== -->
+
+    <!-- نافذة تخصيص الاسم داخل سيت -->
+    <div id="ownerModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
+            <div class="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <h3 class="font-bold text-sm text-slate-900 dark:text-white">تخصيص حسابك في سيت</h3>
+                <button type="button" onclick="closeModal('ownerModal')" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <form onsubmit="saveOwnerName(event)" class="p-5 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1.5">اكتب اسمك أو اسم مشروعك</label>
+                    <input type="text" id="ownerNameInput" required placeholder="مثال: متجر كريم / أمين ديجيتال" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm font-bold focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="flex items-center justify-end gap-2">
+                    <button type="button" onclick="closeModal('ownerModal')" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">إلغاء</button>
+                    <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white">حفظ في سيت</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- نافذة إضافة / تعديل عملية بيع -->
+    <div id="saleModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <h3 id="saleModalTitle" class="font-bold text-base text-slate-900 dark:text-white">إضافة عملية بيع جديدة</h3>
+                <button type="button" onclick="closeModal('saleModal')" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="saleForm" onsubmit="saveSale(event)" class="p-6 space-y-4 max-h-[85vh] overflow-y-auto">
+                <input type="hidden" id="saleId">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">اسم الزبون *</label>
+                        <input type="text" id="saleCustomer" required placeholder="مثال: محمد أمين" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">رقم الهاتف (اختياري)</label>
+                        <input type="tel" id="salePhone" placeholder="05 / 06 / 07..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">المنتج أو الخدمة المباعة *</label>
+                    <input type="text" id="saleProduct" required placeholder="مثال: شحن رصيد 20$ / اشتراك سنة..." class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">التكلفة الإجمالية (دج) *</label>
+                        <input type="number" id="saleCost" required min="0" step="any" oninput="updateModalProfitPreview()" placeholder="0" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm font-bold focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">سعر البيع للزبون (دج) *</label>
+                        <input type="number" id="salePrice" required min="0" step="any" oninput="syncPaidWithPrice()" placeholder="0" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm font-bold text-blue-600 dark:text-blue-400 focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-bold text-slate-700 dark:text-slate-200">المبلغ المدفوع حالياً (دج)</label>
+                        <button type="button" onclick="setFullPaid()" class="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline">دفع كامل المبلغ</button>
+                    </div>
+                    <input type="number" id="salePaid" required min="0" step="any" oninput="updateModalProfitPreview()" placeholder="0" class="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 text-sm font-bold focus:outline-none focus:border-emerald-500">
+
+                    <div class="flex items-center justify-between text-xs pt-1">
+                        <span>الربح الصافي: <strong id="modalPreviewProfit" class="text-emerald-600 dark:text-emerald-400">0 دج</strong></span>
+                        <span>المتبقي (كريدي): <strong id="modalPreviewDebt" class="text-rose-600 dark:text-rose-400">0 دج</strong></span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">تاريخ العملية</label>
+                    <input type="date" id="saleDate" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500">
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('saleModal')" class="px-4 py-2.5 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">إلغاء</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white shadow-md">حفظ العملية</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- نافذة تسديد دين (كريدي) -->
+    <div id="payDebtModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <h3 class="font-bold text-base text-slate-900 dark:text-white">تسديد دفعة من الكريدي</h3>
+                <button type="button" onclick="closeModal('payDebtModal')" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="confirmDebtPayment(event)" class="p-6 space-y-4">
+                <input type="hidden" id="payDebtSaleId">
+                <div class="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-900/20 border border-rose-200 dark:border-rose-800/60">
+                    <div class="text-xs text-rose-700 dark:text-rose-300">الزبون: <strong id="payDebtCustomerName"></strong></div>
+                    <div class="text-sm font-extrabold text-rose-600 dark:text-rose-400 mt-1">الدين المتبقي حالياً: <span id="payDebtRemaining">0 دج</span></div>
+                </div>
+                <div>
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="text-xs font-bold text-slate-600 dark:text-slate-300">المبلغ المدفوع الآن (دج)</label>
+                        <button type="button" onclick="fillMaxDebt()" class="text-xs font-bold text-emerald-600 hover:underline">تسديد الكل</button>
+                    </div>
+                    <input type="number" id="payDebtAmount" required min="1" step="any" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-3 text-base font-bold focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('payDebtModal')" class="px-4 py-2.5 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">إلغاء</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white">تأكيد الدفع</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- نافذة إضافة اشتراك -->
+    <div id="subModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <h3 class="font-bold text-base text-slate-900 dark:text-white">إضافة اشتراك زبون جديد</h3>
+                <button type="button" onclick="closeModal('subModal')" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="saveSubscription(event)" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">اسم الزبون *</label>
+                    <input type="text" id="subCustomer" required placeholder="مثال: سارة بن علي" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">اسم الخدمة / الباقة *</label>
+                    <input type="text" id="subService" required placeholder="مثال: Netflix 4K / IPTV سنة" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">تاريخ البدء *</label>
+                        <input type="date" id="subStartDate" required onchange="calcSubEndDate()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">المدة السريعة</label>
+                        <select id="subDurationPreset" onchange="calcSubEndDate()" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-semibold focus:outline-none focus:border-emerald-500">
+                            <option value="30">شهر واحد (30 يوم)</option>
+                            <option value="90">3 أشهر (90 يوم)</option>
+                            <option value="180">6 أشهر (180 يوم)</option>
+                            <option value="365">سنة كاملة (365 يوم)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">تاريخ الانتهاء *</label>
+                        <input type="date" id="subEndDate" required class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">قيمة الاشتراك (دج)</label>
+                        <input type="number" id="subPrice" value="1500" min="0" class="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-sm font-bold focus:outline-none focus:border-emerald-500">
+                    </div>
+                </div>
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('subModal')" class="px-4 py-2.5 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">إلغاء</button>
+                    <button type="submit" class="px-6 py-2.5 rounded-xl text-sm font-bold bg-emerald-600 hover:bg-emerald-700 text-white">حفظ الاشتراك</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- نافذة النسخ الاحتياطي وتصدير البيانات -->
+    <div id="backupModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <h3 class="font-bold text-base text-slate-900 dark:text-white">النسخ الاحتياطي لنظام سيت</h3>
+                <button type="button" onclick="closeModal('backupModal')" class="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    يتم حفظ جميع بياناتك في سيت تلقائياً في ذاكرة هذا المتصفح. يمكنك تصدير نسخة احتياطية JSON أو استعادتها في أي وقت.
+                </p>
+                <div class="grid grid-cols-1 gap-3">
+                    <button type="button" onclick="exportData()" class="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold transition">
+                        <i data-lucide="download" class="w-4 h-4"></i>
+                        تصدير نسخة احتياطية (JSON)
+                    </button>
+                    <label class="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-sm font-bold cursor-pointer transition">
+                        <i data-lucide="upload" class="w-4 h-4"></i>
+                        استعادة بيانات من ملف
+                        <input type="file" accept=".json" onchange="importData(event)" class="hidden">
+                    </label>
+                </div>
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <button type="button" onclick="resetDemoData()" class="w-full py-2 text-xs font-bold text-rose-600 hover:underline">
+                        إعادة ضبط البيانات التجريبية الافتراضية
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- إشعار Toast عائم -->
+    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 hidden bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-5 py-3 rounded-2xl shadow-xl text-sm font-bold flex items-center gap-2 transition-all">
+        <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 dark:text-emerald-600"></i>
+        <span id="toastMessage">تم الحفظ بنجاح</span>
+    </div>
+
+    <script>
+        // ==================== إدارة الحالة والتخزين المحلي ====================
+        const STORAGE_KEY = 'site_dz_sales_profit_v2';
+        const SYSTEM_NAME = 'سيت';
+        let chartInstance = null;
+
+        const defaultState = {
+            ownerName: 'حسابي الخاص',
+            squareRate: 245,
+            darkMode: false,
+            sales: [
+                {
+                    id: 's1',
+                    customer: 'أمين بوزيد',
+                    phone: '0550123456',
+                    product: 'اشتراك IPTV 4K لمدة سنة',
+                    cost: 2200,
+                    price: 3500,
+                    paid: 3500,
+                    date: new Date().toISOString().split('T')[0]
+                },
+                {
+                    id: 's2',
+                    customer: 'كريم منصوري',
+                    phone: '0661987654',
+                    product: 'شحن رصيد 20 USDT',
+                    cost: 4900,
+                    price: 5400,
+                    paid: 3000,
+                    date: new Date().toISOString().split('T')[0]
+                },
+                {
+                    id: 's3',
+                    customer: 'ياسين خالدي',
+                    phone: '0770456123',
+                    product: 'حساب ChatGPT Plus شهري',
+                    cost: 4900,
+                    price: 6200,
+                    paid: 6200,
+                    date: new Date(Date.now() - 86400000).toISOString().split('T')[0]
+                }
+            ],
+            subscriptions: [
+                {
+                    id: 'sub1',
+                    customer: 'أمين بوزيد',
+                    service: 'IPTV Smarters Pro (سنة)',
+                    startDate: new Date(Date.now() - 360 * 86400000).toISOString().split('T')[0],
+                    endDate: new Date(Date.now() + 3 * 86400000).toISOString().split('T')[0],
+                    price: 3500
+                },
+                {
+                    id: 'sub2',
+                    customer: 'سارة مرابط',
+                    service: 'Netflix Ultra HD (شهر)',
+                    startDate: new Date(Date.now() - 10 * 86400000).toISOString().split('T')[0],
+                    endDate: new Date(Date.now() + 20 * 86400000).toISOString().split('T')[0],
+                    price: 1200
+                }
+            ]
+        };
+
+        let appState = loadState();
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    return {
+                        ...JSON.parse(JSON.stringify(defaultState)),
+                        ...parsed,
+                        ownerName: parsed.ownerName || parsed.brandName || 'حسابي الخاص'
+                    };
+                }
+            } catch (e) {
+                console.error('تعذر قراءة بيانات سيت:', e);
+            }
+            return JSON.parse(JSON.stringify(defaultState));
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+                refreshAllUI();
+            } catch (e) {
+                console.error('تعذر حفظ بيانات سيت:', e);
+            }
+        }
+
+        function formatDZD(amount) {
+            return Number(amount || 0).toLocaleString('fr-DZ') + ' دج';
+        }
+
+        // ==================== التهيئة والتنقل بين التبويبات ====================
+        window.onload = function () {
+            if (appState.darkMode) {
+                document.documentElement.classList.add('dark');
+            }
+            applyOwnerBranding();
+            syncSquareRateInputs(appState.squareRate);
+            calculateSquare();
+            switchTab('dashboard');
+            refreshAllUI();
+            lucide.createIcons();
+        };
+
+        function switchTab(tabName, salesFilter = null) {
+            document.querySelectorAll('.tab-content').forEach(sec => sec.classList.add('hidden'));
+            const activeSection = document.getElementById(`tab-${tabName}`);
+            if (activeSection) activeSection.classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                const isActive = btn.dataset.tab === tabName;
+                btn.className = isActive
+                    ? 'nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 transition'
+                    : 'nav-btn flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition';
+            });
+
+            document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+                const isActive = btn.dataset.tab === tabName;
+                btn.className = isActive
+                    ? 'mobile-nav-btn relative flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50/70 dark:bg-emerald-900/30 transition'
+                    : 'mobile-nav-btn relative flex flex-col items-center gap-1 py-1.5 px-3 rounded-xl text-xs font-bold text-slate-500 dark:text-slate-400 transition';
+            });
+
+            if (tabName === 'sales' && salesFilter) {
+                document.getElementById('salesFilterSelect').value = salesFilter;
+                renderSalesTable();
+            }
+
+            if (tabName === 'dashboard') {
+                renderChart();
+            }
+
+            lucide.createIcons();
+        }
+
+        function applyOwnerBranding() {
+            const owner = (appState.ownerName || 'حسابي الخاص').trim();
+            document.getElementById('brandTitle').textContent = owner;
+            document.getElementById('greetingBannerTitle').textContent = `أهلاً بك، ${owner}`;
+            document.getElementById('welcomeOwnerLabel').textContent = `${SYSTEM_NAME} • ${owner} • الدينار الجزائري (دج)`;
+            document.title = `${SYSTEM_NAME} — ${owner}`;
+        }
+
+        function editOwnerName() {
+            document.getElementById('ownerNameInput').value = appState.ownerName || '';
+            document.getElementById('ownerModal').classList.remove('hidden');
+        }
+
+        function saveOwnerName(e) {
+            e.preventDefault();
+            const val = document.getElementById('ownerNameInput').value.trim();
+            if (val) {
+                appState.ownerName = val;
+                applyOwnerBranding();
+                saveState();
+                closeModal('ownerModal');
+                showToast(`تم حفظ اسم "${val}" في سيت`);
+            }
+        }
+
+        function toggleDarkMode() {
+            appState.darkMode = !appState.darkMode;
+            document.documentElement.classList.toggle('dark', appState.darkMode);
+            saveState();
+            renderChart();
+        }
+
+        function refreshAllUI() {
+            applyOwnerBranding();
+            updateDashboardStats();
+            renderSalesTable();
+            renderSubscriptions();
+            renderChart();
+            lucide.createIcons();
+        }
+
+        // ==================== 1. لوحة التحكم ====================
+        function updateDashboardStats() {
+            let totalSales = 0;
+            let totalCost = 0;
+            let totalDebt = 0;
+            let debtorsCount = 0;
+
+            appState.sales.forEach(s => {
+                totalSales += Number(s.price);
+                totalCost += Number(s.cost);
+                const debt = Math.max(0, Number(s.price) - Number(s.paid));
+                if (debt > 0) {
+                    totalDebt += debt;
+                    debtorsCount++;
+                }
+            });
+
+            const netProfit = totalSales - totalCost;
+            const margin = totalSales > 0 ? ((netProfit / totalSales) * 100).toFixed(1) : 0;
+
+            document.getElementById('statTotalSales').textContent = formatDZD(totalSales);
+            document.getElementById('statSalesCount').textContent = appState.sales.length;
+            document.getElementById('statNetProfit').textContent = formatDZD(netProfit);
+            document.getElementById('statProfitMargin').textContent = `${margin}%`;
+            document.getElementById('statTotalCost').textContent = formatDZD(totalCost);
+            document.getElementById('statTotalDebt').textContent = formatDZD(totalDebt);
+            document.getElementById('statDebtorsCount').textContent = debtorsCount;
+
+            const navDebtBadge = document.getElementById('navDebtBadge');
+            const mobileDebtDot = document.getElementById('mobileDebtDot');
+            if (debtorsCount > 0) {
+                navDebtBadge.textContent = debtorsCount;
+                navDebtBadge.classList.remove('hidden');
+                mobileDebtDot.classList.remove('hidden');
+            } else {
+                navDebtBadge.classList.add('hidden');
+                mobileDebtDot.classList.add('hidden');
+            }
+
+            renderDashboardAlerts();
+        }
+
+        function renderDashboardAlerts() {
+            const container = document.getElementById('dashboardAlertsList');
+            const alerts = [];
+
+            appState.subscriptions.forEach(sub => {
+                const daysLeft = getDaysRemaining(sub.endDate);
+                if (daysLeft <= 5) {
+                    alerts.push({
+                        type: daysLeft < 0 ? 'danger' : 'warning',
+                        title: `اشتراك ${sub.customer}`,
+                        desc: daysLeft < 0 ? `منتهي منذ ${Math.abs(daysLeft)} يوم (${sub.service})` : `ينتهي خلال ${daysLeft} يوم (${sub.service})`
+                    });
+                }
+            });
+
+            appState.sales.forEach(s => {
+                const debt = Number(s.price) - Number(s.paid);
+                if (debt > 0) {
+                    alerts.push({
+                        type: 'debt',
+                        title: `كريدي: ${s.customer}`,
+                        desc: `متبقي ${formatDZD(debt)} (${s.product})`
+                    });
+                }
+            });
+
+            const navSubBadge = document.getElementById('navSubBadge');
+            const mobileSubDot = document.getElementById('mobileSubDot');
+            const expiringCount = appState.subscriptions.filter(s => getDaysRemaining(s.endDate) <= 5).length;
+            if (expiringCount > 0) {
+                navSubBadge.textContent = expiringCount;
+                navSubBadge.classList.remove('hidden');
+                mobileSubDot.classList.remove('hidden');
+            } else {
+                navSubBadge.classList.add('hidden');
+                mobileSubDot.classList.add('hidden');
+            }
+
+            if (alerts.length === 0) {
+                container.innerHTML = `
+                    <div class="p-4 rounded-xl bg-emerald-50/60 dark:bg-emerald-900/20 text-center">
+                        <p class="text-xs font-bold text-emerald-700 dark:text-emerald-300">كل الأمور ممتازة! لا توجد تنبيهات عاجلة.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = alerts.slice(0, 5).map(a => {
+                const badgeClass = a.type === 'danger' || a.type === 'debt'
+                    ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800/60 text-rose-700 dark:text-rose-300'
+                    : 'bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800/60 text-amber-700 dark:text-amber-300';
+                return `
+                    <div class="p-3 rounded-xl border ${badgeClass}">
+                        <div class="text-xs font-bold">${a.title}</div>
+                        <div class="text-[11px] opacity-90 mt-0.5">${a.desc}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('profitChart');
+            if (!ctx) return;
+
+            const recentSales = [...appState.sales].slice(-7);
+            const labels = recentSales.map(s => s.customer);
+            const salesData = recentSales.map(s => s.price);
+            const profitData = recentSales.map(s => s.price - s.cost);
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const isDark = appState.darkMode;
+            const textColor = isDark ? '#94a3b8' : '#64748b';
+            const gridColor = isDark ? 'rgba(51, 65, 85, 0.4)' : 'rgba(226, 232, 240, 0.7)';
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels.length ? labels : ['لا توجد بيانات'],
+                    datasets: [
+                        {
+                            label: 'سعر البيع (دج)',
+                            data: salesData.length ? salesData : [0],
+                            backgroundColor: '#3b82f6',
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'صافي الربح (دج)',
+                            data: profitData.length ? profitData : [0],
+                            backgroundColor: '#10b981',
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: textColor,
+                                font: { family: 'Cairo', weight: 'bold' }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: textColor, font: { family: 'Cairo' } },
+                            grid: { display: false }
+                        },
+                        y: {
+                            ticks: { color: textColor, font: { family: 'Cairo' } },
+                            grid: { color: gridColor }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ==================== 2. حاسبة السكوار / USDT ====================
+        function syncSquareRateInputs(rate) {
+            const val = Number(rate) || 245;
+            document.getElementById('headerSquareRate').value = val;
+            document.getElementById('mobileSquareRate').value = val;
+            document.getElementById('calcExchangeRate').value = val;
+        }
+
+        function updateSquareRate(newRate) {
+            const val = Number(newRate);
+            if (val > 0) {
+                appState.squareRate = val;
+                syncSquareRateInputs(val);
+                calculateSquare();
+                saveState();
+                showToast(`تم تحديث سعر السكوار إلى ${val} دج`);
+            }
+        }
+
+        function setQuickMargin(percent) {
+            document.getElementById('calcProfitPercent').value = percent;
+            calculateSquare('percent');
+        }
+
+        function calculateSquare(mode = 'percent') {
+            const rate = Number(document.getElementById('calcExchangeRate').value) || 0;
+            const usd = Number(document.getElementById('calcUsdAmount').value) || 0;
+            const costDzd = Math.round(rate * usd);
+
+            let sellDzd = 0;
+            if (mode === 'price') {
+                sellDzd = Number(document.getElementById('calcSellingPrice').value) || 0;
+                const margin = costDzd > 0 ? (((sellDzd - costDzd) / costDzd) * 100).toFixed(1) : 0;
+                document.getElementById('calcProfitPercent').value = margin;
+            } else {
+                const percent = Number(document.getElementById('calcProfitPercent').value) || 0;
+                sellDzd = Math.round(costDzd * (1 + percent / 100));
+                document.getElementById('calcSellingPrice').value = sellDzd;
+            }
+
+            const profitDzd = sellDzd - costDzd;
+
+            document.getElementById('resCostDzd').textContent = formatDZD(costDzd);
+            document.getElementById('resSellDzd').textContent = formatDZD(sellDzd);
+            document.getElementById('resProfitDzd').textContent = (profitDzd >= 0 ? '+' : '') + formatDZD(profitDzd);
+        }
+
+        function convertCalcToSale() {
+            const rate = Number(document.getElementById('calcExchangeRate').value) || 0;
+            const usd = Number(document.getElementById('calcUsdAmount').value) || 0;
+            const costDzd = Math.round(rate * usd);
+            const sellDzd = Number(document.getElementById('calcSellingPrice').value) || 0;
+
+            openSaleModal({
+                product: `خدمة / رصيد بقيمة ${usd}$ (سكوار ${rate} دج)`,
+                cost: costDzd,
+                price: sellDzd,
+                paid: sellDzd
+            });
+        }
+
+        // ==================== 3. المبيعات والكريدي ====================
+        function renderSalesTable() {
+            const tbody = document.getElementById('salesTableBody');
+            const emptyState = document.getElementById('emptySalesState');
+            const search = document.getElementById('salesSearchInput').value.trim().toLowerCase();
+            const filter = document.getElementById('salesFilterSelect').value;
+
+            const filtered = appState.sales.filter(s => {
+                const matchesSearch = s.customer.toLowerCase().includes(search) ||
+                    s.product.toLowerCase().includes(search) ||
+                    (s.phone && s.phone.includes(search));
+                const debt = Number(s.price) - Number(s.paid);
+                if (filter === 'paid') return matchesSearch && debt <= 0;
+                if (filter === 'debt') return matchesSearch && debt > 0;
+                return matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            tbody.innerHTML = filtered.slice().reverse().map(s => {
+                const profit = Number(s.price) - Number(s.cost);
+                const debt = Math.max(0, Number(s.price) - Number(s.paid));
+                const isPaid = debt === 0;
+
+                return `
+                    <tr class="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition">
+                        <td class="py-3.5 px-4">
+                            <div class="font-bold text-slate-900 dark:text-white">${s.customer}</div>
+                            <div class="text-xs text-slate-500 dark:text-slate-400">${s.product}</div>
+                            ${s.phone ? `<div class="text-[11px] text-slate-400 mt-0.5">${s.phone}</div>` : ''}
+                        </td>
+                        <td class="py-3.5 px-4 text-xs text-slate-500 whitespace-nowrap">${s.date}</td>
+                        <td class="py-3.5 px-4 font-bold text-slate-800 dark:text-slate-200 whitespace-nowrap">${formatDZD(s.price)}</td>
+                        <td class="py-3.5 px-4 text-xs text-slate-500 whitespace-nowrap">${formatDZD(s.cost)}</td>
+                        <td class="py-3.5 px-4 font-bold ${profit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600'} whitespace-nowrap">
+                            ${profit >= 0 ? '+' : ''}${formatDZD(profit)}
+                        </td>
+                        <td class="py-3.5 px-4 whitespace-nowrap">
+                            ${isPaid
+                                ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">خالص</span>`
+                                : `<div class="space-y-1">
+                                    <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300">كريدي: ${formatDZD(debt)}</span>
+                                    <button type="button" onclick="openPayDebtModal('${s.id}')" class="block text-[11px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline">+ تسديد دفعة</button>
+                                   </div>`
+                            }
+                        </td>
+                        <td class="py-3.5 px-4 text-center whitespace-nowrap">
+                            <div class="flex items-center justify-center gap-1">
+                                <button type="button" onclick="editSale('${s.id}')" title="تعديل" class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-blue-600">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>
+                                <button type="button" onclick="deleteSale('${s.id}')" title="حذف" class="p-2 rounded-lg text-slate-500 hover:bg-rose-50 dark:hover:bg-rose-900/30 hover:text-rose-600">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function openSaleModal(prefill = null) {
+            document.getElementById('saleForm').reset();
+            document.getElementById('saleId').value = '';
+            document.getElementById('saleModalTitle').textContent = 'إضافة عملية بيع جديدة';
+            document.getElementById('saleDate').value = new Date().toISOString().split('T')[0];
+
+            if (prefill) {
+                document.getElementById('saleProduct').value = prefill.product || '';
+                document.getElementById('saleCost').value = prefill.cost || 0;
+                document.getElementById('salePrice').value = prefill.price || 0;
+                document.getElementById('salePaid').value = prefill.paid || 0;
+            }
+
+            updateModalProfitPreview();
+            document.getElementById('saleModal').classList.remove('hidden');
+        }
+
+        function editSale(id) {
+            const sale = appState.sales.find(s => s.id === id);
+            if (!sale) return;
+
+            document.getElementById('saleId').value = sale.id;
+            document.getElementById('saleModalTitle').textContent = 'تعديل عملية البيع';
+            document.getElementById('saleCustomer').value = sale.customer;
+            document.getElementById('salePhone').value = sale.phone || '';
+            document.getElementById('saleProduct').value = sale.product;
+            document.getElementById('saleCost').value = sale.cost;
+            document.getElementById('salePrice').value = sale.price;
+            document.getElementById('salePaid').value = sale.paid;
+            document.getElementById('saleDate').value = sale.date;
+
+            updateModalProfitPreview();
+            document.getElementById('saleModal').classList.remove('hidden');
+        }
+
+        function syncPaidWithPrice() {
+            const price = document.getElementById('salePrice').value;
+            if (!document.getElementById('saleId').value) {
+                document.getElementById('salePaid').value = price;
+            }
+            updateModalProfitPreview();
+        }
+
+        function setFullPaid() {
+            document.getElementById('salePaid').value = document.getElementById('salePrice').value || 0;
+            updateModalProfitPreview();
+        }
+
+        function updateModalProfitPreview() {
+            const cost = Number(document.getElementById('saleCost').value) || 0;
+            const price = Number(document.getElementById('salePrice').value) || 0;
+            const paid = Number(document.getElementById('salePaid').value) || 0;
+
+            const profit = price - cost;
+            const debt = Math.max(0, price - paid);
+
+            document.getElementById('modalPreviewProfit').textContent = formatDZD(profit);
+            document.getElementById('modalPreviewDebt').textContent = formatDZD(debt);
+        }
+
+        function saveSale(e) {
+            e.preventDefault();
+            const id = document.getElementById('saleId').value;
+            const saleData = {
+                id: id || 'sale_' + Date.now(),
+                customer: document.getElementById('saleCustomer').value.trim(),
+                phone: document.getElementById('salePhone').value.trim(),
+                product: document.getElementById('saleProduct').value.trim(),
+                cost: Number(document.getElementById('saleCost').value) || 0,
+                price: Number(document.getElementById('salePrice').value) || 0,
+                paid: Number(document.getElementById('salePaid').value) || 0,
+                date: document.getElementById('saleDate').value
+            };
+
+            if (id) {
+                const idx = appState.sales.findIndex(s => s.id === id);
+                if (idx !== -1) appState.sales[idx] = saleData;
+                showToast('تم تحديث عملية البيع في سيت');
+            } else {
+                appState.sales.push(saleData);
+                showToast('تم تسجيل عملية البيع وحفظها');
+            }
+
+            closeModal('saleModal');
+            saveState();
+        }
+
+        function deleteSale(id) {
+            appState.sales = appState.sales.filter(s => s.id !== id);
+            saveState();
+            showToast('تم حذف العملية من السجل');
+        }
+
+        function openPayDebtModal(id) {
+            const sale = appState.sales.find(s => s.id === id);
+            if (!sale) return;
+            const remaining = Math.max(0, Number(sale.price) - Number(sale.paid));
+
+            document.getElementById('payDebtSaleId').value = sale.id;
+            document.getElementById('payDebtCustomerName').textContent = sale.customer;
+            document.getElementById('payDebtRemaining').textContent = formatDZD(remaining);
+            document.getElementById('payDebtAmount').value = remaining;
+            document.getElementById('payDebtAmount').max = remaining;
+            document.getElementById('payDebtModal').classList.remove('hidden');
+        }
+
+        function fillMaxDebt() {
+            const id = document.getElementById('payDebtSaleId').value;
+            const sale = appState.sales.find(s => s.id === id);
+            if (sale) {
+                document.getElementById('payDebtAmount').value = Math.max(0, Number(sale.price) - Number(sale.paid));
+            }
+        }
+
+        function confirmDebtPayment(e) {
+            e.preventDefault();
+            const id = document.getElementById('payDebtSaleId').value;
+            const amount = Number(document.getElementById('payDebtAmount').value) || 0;
+            const sale = appState.sales.find(s => s.id === id);
+
+            if (sale && amount > 0) {
+                sale.paid = Math.min(Number(sale.price), Number(sale.paid) + amount);
+                saveState();
+                showToast(`تم تسجيل دفعة بقيمة ${formatDZD(amount)}`);
+            }
+            closeModal('payDebtModal');
+        }
+
+        // ==================== 4. الاشتراكات ====================
+        function getDaysRemaining(endDateStr) {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const end = new Date(endDateStr);
+            end.setHours(0, 0, 0, 0);
+            return Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+        }
+
+        function renderSubscriptions() {
+            const grid = document.getElementById('subscriptionsGrid');
+            const empty = document.getElementById('emptySubsState');
+
+            if (appState.subscriptions.length === 0) {
+                grid.innerHTML = '';
+                empty.classList.remove('hidden');
+                return;
+            }
+
+            empty.classList.add('hidden');
+            const sorted = [...appState.subscriptions].sort((a, b) => new Date(a.endDate) - new Date(b.endDate));
+
+            grid.innerHTML = sorted.map(sub => {
+                const daysLeft = getDaysRemaining(sub.endDate);
+                let statusBadge = '';
+                let borderClass = 'border-slate-200/80 dark:border-slate-800';
+
+                if (daysLeft < 0) {
+                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-300">منتهي منذ ${Math.abs(daysLeft)} يوم</span>`;
+                    borderClass = 'border-rose-300 dark:border-rose-800';
+                } else if (daysLeft <= 5) {
+                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">ينتهي خلال ${daysLeft} يوم</span>`;
+                    borderClass = 'border-amber-300 dark:border-amber-800';
+                } else {
+                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">نشط (${daysLeft} يوم)</span>`;
+                }
+
+                return `
+                    <div class="bg-white dark:bg-slate-900 p-5 rounded-2xl border ${borderClass} shadow-sm flex flex-col justify-between space-y-4">
+                        <div>
+                            <div class="flex items-start justify-between gap-2 mb-2">
+                                <div>
+                                    <h3 class="font-bold text-slate-900 dark:text-white">${sub.customer}</h3>
+                                    <p class="text-xs font-semibold text-emerald-600 dark:text-emerald-400">${sub.service}</p>
+                                </div>
+                                ${statusBadge}
+                            </div>
+                            <div class="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 grid grid-cols-2 gap-2 text-xs text-slate-500">
+                                <div>البداية: <strong class="text-slate-700 dark:text-slate-300">${sub.startDate}</strong></div>
+                                <div>الانتهاء: <strong class="text-slate-700 dark:text-slate-300">${sub.endDate}</strong></div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-2">
+                            <span class="text-sm font-extrabold text-slate-800 dark:text-slate-200">${formatDZD(sub.price)}</span>
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" onclick="renewSubscription('${sub.id}')" class="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 text-xs font-bold transition">
+                                    تجديد شهر +
+                                </button>
+                                <button type="button" onclick="deleteSubscription('${sub.id}')" title="حذف" class="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-900/30">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function openSubModal() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('subCustomer').value = '';
+            document.getElementById('subService').value = '';
+            document.getElementById('subStartDate').value = today;
+            document.getElementById('subDurationPreset').value = '30';
+            calcSubEndDate();
+            document.getElementById('subModal').classList.remove('hidden');
+        }
+
+        function calcSubEndDate() {
+            const startStr = document.getElementById('subStartDate').value;
+            const days = Number(document.getElementById('subDurationPreset').value) || 30;
+            if (!startStr) return;
+
+            const d = new Date(startStr);
+            d.setDate(d.getDate() + days);
+            document.getElementById('subEndDate').value = d.toISOString().split('T')[0];
+        }
+
+        function saveSubscription(e) {
+            e.preventDefault();
+            const newSub = {
+                id: 'sub_' + Date.now(),
+                customer: document.getElementById('subCustomer').value.trim(),
+                service: document.getElementById('subService').value.trim(),
+                startDate: document.getElementById('subStartDate').value,
+                endDate: document.getElementById('subEndDate').value,
+                price: Number(document.getElementById('subPrice').value) || 0
+            };
+            appState.subscriptions.push(newSub);
+            closeModal('subModal');
+            saveState();
+            showToast('تمت إضافة الاشتراك بنجاح');
+        }
+
+        function renewSubscription(id) {
+            const sub = appState.subscriptions.find(s => s.id === id);
+            if (!sub) return;
+            const baseDate = getDaysRemaining(sub.endDate) > 0 ? new Date(sub.endDate) : new Date();
+            baseDate.setDate(baseDate.getDate() + 30);
+            sub.endDate = baseDate.toISOString().split('T')[0];
+            saveState();
+            showToast(`تم تجديد اشتراك ${sub.customer} لمدة 30 يوماً`);
+        }
+
+        function deleteSubscription(id) {
+            appState.subscriptions = appState.subscriptions.filter(s => s.id !== id);
+            saveState();
+            showToast('تم حذف الاشتراك');
+        }
+
+        // ==================== 5. النسخ الاحتياطي والنوافذ ====================
+        function openBackupModal() {
+            document.getElementById('backupModal').classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function exportData() {
+            const dataStr = JSON.stringify(appState, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cite_backup_dz_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('تم تنزيل نسخة سيت الاحتياطية');
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                try {
+                    const imported = JSON.parse(e.target.result);
+                    if (imported && Array.isArray(imported.sales)) {
+                        appState = {
+                            ...JSON.parse(JSON.stringify(defaultState)),
+                            ...imported,
+                            ownerName: imported.ownerName || imported.brandName || 'حسابي الخاص'
+                        };
+                        saveState();
+                        closeModal('backupModal');
+                        showToast('تمت استعادة البيانات في سيت بنجاح');
+                    } else {
+                        showToast('صيغة الملف غير صالحة');
+                    }
+                } catch (err) {
+                    showToast('تعذر قراءة الملف');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function resetDemoData() {
+            appState = JSON.parse(JSON.stringify(defaultState));
+            saveState();
+            closeModal('backupModal');
+            showToast('تمت استعادة البيانات الافتراضية');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = msg;
+            toast.classList.remove('hidden');
+            clearTimeout(window.toastTimer);
+            window.toastTimer = setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
